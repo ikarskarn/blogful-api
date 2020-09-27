@@ -6,6 +6,15 @@ const ArticlesService = require('./articles-service')
 const articlesRouter = express.Router()
 const jsonParser = express.json()
 
+const serializeArticle = article => ({
+    id: article.id,
+    style: article.style,
+    title: xss(article.title),
+    content: xss(article.content),
+    date_published: article.date_published,
+    author: article.author,
+})
+
 articlesRouter
 .route('/').get((req, res, next) => {
     ArticlesService.getAllArticles(
@@ -17,7 +26,7 @@ articlesRouter
     .catch(next)
 })
 .post(jsonParser, (req, res, next) => {
-    const { title, content, style } = req.body
+    const { title, content, style, author } = req.body
     const newArticle = { title, content, style }
 
     for (const [key, value] of Object.entries(newArticle)) {
@@ -27,7 +36,7 @@ articlesRouter
             })
         }
     }
-
+    newArticle.author = author;
     ArticlesService.insertArticle(
         req.app.get('db'),
         newArticle
